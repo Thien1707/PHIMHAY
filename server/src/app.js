@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const moviesRoutes = require('./routes/movies');
@@ -9,6 +10,14 @@ const paymentRoutes = require('./routes/payment');
 
 const app = express();
 
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret'],
+    optionsSuccessStatus: 204
+  })
+);
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
