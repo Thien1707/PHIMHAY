@@ -19,6 +19,8 @@ async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false, // Trả về lỗi ngay nếu mất kết nối thay vì chờ
+      serverSelectionTimeoutMS: 5000, // Timeout sau 5s nếu không kết nối được (thay vì 30s)
+      socketTimeoutMS: 45000, // Giữ kết nối lâu hơn một chút để tránh mất kết nối giữa chừng
     };
 
     cached.promise = mongoose.connect(config.mongoUri, opts).then((mongoose) => {
