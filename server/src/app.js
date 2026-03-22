@@ -40,6 +40,11 @@ app.use(async (req, _res, next) => {
   }
 });
 
+// Thêm route cho trang chủ để test server sống hay chết
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running!', time: new Date() });
+});
+
 app.get('/api/health', (_req, res) => {
   const mongoose = require('mongoose');
   res.json({ ok: true, mongo: mongoose.connection.readyState === 1 });
@@ -55,6 +60,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/payment', paymentRoutes);
+
+// Xử lý lỗi 404 (Không tìm thấy route) - Để tránh treo request
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not Found', path: req.originalUrl });
+});
 
 app.use((err, _req, res, _next) => {
   console.error('[SERVER ERROR]', err);
