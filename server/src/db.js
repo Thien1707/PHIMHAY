@@ -23,7 +23,9 @@ async function connectDB() {
       socketTimeoutMS: 45000, // Giữ kết nối lâu hơn một chút để tránh mất kết nối giữa chừng
     };
 
+    console.log('Connecting to MongoDB...');
     cached.promise = mongoose.connect(config.mongoUri, opts).then((mongoose) => {
+      console.log('MongoDB Connected successfully');
       return mongoose;
     });
   }
@@ -32,6 +34,7 @@ async function connectDB() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    console.error('MongoDB connection error:', e);
     throw e;
   }
 
