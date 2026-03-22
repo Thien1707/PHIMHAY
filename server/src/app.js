@@ -25,6 +25,7 @@ app.use(express.json());
 app.use(async (_req, _res, next) => {
   try {
     await connectDB();
+    // console.log('DB Check passed'); // Log kiểm tra
     next();
   } catch (error) {
     next(error);

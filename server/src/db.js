@@ -21,6 +21,8 @@ async function connectDB() {
       bufferCommands: false, // Trả về lỗi ngay nếu mất kết nối thay vì chờ
       serverSelectionTimeoutMS: 5000, // Timeout sau 5s nếu không kết nối được (thay vì 30s)
       socketTimeoutMS: 45000, // Giữ kết nối lâu hơn một chút để tránh mất kết nối giữa chừng
+      family: 4, // Ép buộc dùng IPv4 để tránh lỗi treo do IPv6
+      maxPoolSize: 1, // Quan trọng: Giảm pool size cho serverless để tránh quá tải kết nối
     };
 
     console.log('Connecting to MongoDB...');
