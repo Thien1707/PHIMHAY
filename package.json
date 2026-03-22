@@ -1,0 +1,8 @@
+{
+  "name": "phimhay",
+  "private": true,
+  "scripts": {
+    "dev:api": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client"
+  }
+}
