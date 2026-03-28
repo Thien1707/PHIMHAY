@@ -4,66 +4,126 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 
 type Filters = {
-  types: string[]
+  types?: string[]
   countries: string[]
 }
 
+type CategoryItem = {
+  _id: string
+  name: string
+  displayName?: string
+}
+
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  hoathinh: 'Hoạt hình',
+  series: 'Phim bộ',
+  single: 'Phim lẻ'
+}
+
 export function FilterDropdowns() {
-  const [filters, setFilters] = useState<Filters | null>(null)
+  const [filters, setFilters] = useState<Filters>({ countries: [] })
+  const [categories, setCategories] = useState<CategoryItem[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [countriesLoading, setCountriesLoading] = useState(true)
+  const [categoriesError, setCategoriesError] = useState<string | null>(null)
+  const [countriesError, setCountriesError] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
   const nav = useNavigate()
-  const type = searchParams.get('type')
+  const category = searchParams.get('category')
   const country = searchParams.get('country')
 
   useEffect(() => {
-    api<Filters>('/api/movies/filters')
-      .then(setFilters)
-      .catch(() => {
-        /* ignore */
+    let mounted = true
+    setCategoriesLoading(true)
+    setCountriesLoading(true)
+    setCategoriesError(null)
+    setCountriesError(null)
+
+    api<{ items: CategoryItem[] }>('/api/categories')
+      .then((c) => {
+        if (!mounted) return
+        setCategories(c.items)
       })
+      .catch((e: Error) => {
+        if (!mounted) return
+        // Backward-compatible fallback if backend route is not deployed yet.
+        api<Filters>('/api/movies/filters')
+          .then((f) => {
+            if (!mounted) return
+            const fallbackCategories = (f.types || []).map((name) => ({ _id: `type:${name}`, name }))
+            setCategories(fallbackCategories)
+            setCategoriesError(null)
+          })
+          .catch(() => {
+            if (!mounted) return
+            setCategoriesError(e.message || 'Không tải được danh sách thể loại')
+          })
+      })
+      .finally(() => {
+        if (!mounted) return
+        setCategoriesLoading(false)
+      })
+
+    api<Filters>('/api/movies/filters')
+      .then((f) => {
+        if (!mounted) return
+        setFilters(f)
+      })
+      .catch((e: Error) => {
+        if (!mounted) return
+        setCountriesError(e.message || 'Không tải được danh sách quốc gia')
+      })
+      .finally(() => {
+        if (!mounted) return
+        setCountriesLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
-  function translateType(type: string) {
-    switch (type) {
-      case 'hoathinh':
-        return 'Hoạt hình'
-      case 'series':
-        return 'Phim bộ'
-      case 'movies':
-        return 'Phim lẻ'
-      case 'phim hoạt hình từ Nhật Bản':
-        return 'Anime'
-      default:
-        return type
-    }
+  function categoryLabel(category: CategoryItem) {
+    const mapped = CATEGORY_LABEL_MAP[category.name?.trim().toLowerCase()]
+    return category.displayName?.trim() || mapped || category.name
   }
 
-  function handleFilterChange(filterType: 'type' | 'country', value: string) {
+  function currentCategoryName() {
+    if (!category) return 'Thể loại'
+    const found = categories.find((c) => c._id === category || c._id === `type:${category}`)
+    return found ? categoryLabel(found) : 'Thể loại'
+  }
+
+  function handleFilterChange(filterType: 'category' | 'country', value: string) {
     const newParams = new URLSearchParams(searchParams)
     if (value) {
-      newParams.set(filterType, value)
+      if (filterType === 'category' && value.startsWith('type:')) {
+        newParams.set('type', value.slice('type:'.length))
+        newParams.delete('category')
+      } else {
+        newParams.set(filterType, value)
+      }
     } else {
       newParams.delete(filterType)
+      if (filterType === 'category') newParams.delete('type')
     }
     newParams.set('page', '1')
     // By navigating to `/` we ensure that we are on the home page when a filter is selected.
     nav(`/?${newParams.toString()}`)
   }
-  if (!filters) {
-    return null
-  }
-
   return (
     <>
       <div className="filter-dropdown">
         <button className="filter-dropdown__button">
-          {type ? translateType(type) : 'Thể loại'}
+          {currentCategoryName()}
         </button>
         <div className="filter-dropdown__menu">
-          <a onClick={() => handleFilterChange('type', '')}>Tất cả</a>
-          {filters.types.map((t) => (
-            <a key={t} onClick={() => handleFilterChange('type', t)}>
-              {translateType(t)}
+          <a onClick={() => handleFilterChange('category', '')}>Tất cả</a>
+          {categoriesLoading && <a className="menu-hint">Đang tải...</a>}
+          {categoriesError && <a className="menu-hint menu-hint--error">{categoriesError}</a>}
+          {categories.map((c) => (
+            <a key={c._id} onClick={() => handleFilterChange('category', c._id)}>
+              {categoryLabel(c)}
             </a>
           ))}
         </div>
@@ -74,6 +134,8 @@ export function FilterDropdowns() {
         </button>
         <div className="filter-dropdown__menu filter-dropdown__menu--country">
           <a onClick={() => handleFilterChange('country', '')}>Tất cả</a>
+          {countriesLoading && <a className="menu-hint">Đang tải...</a>}
+          {countriesError && <a className="menu-hint menu-hint--error">{countriesError}</a>}
           {filters.countries.map((c) => (
             <a key={c} onClick={() => handleFilterChange('country', c)}>
               {c}
@@ -126,6 +188,13 @@ export function FilterDropdowns() {
         }
         .filter-dropdown__menu--country {
           overflow-y: hidden;
+        }
+        .menu-hint {
+          opacity: 0.75;
+          cursor: default !important;
+        }
+        .menu-hint--error {
+          color: #ff8181 !important;
         }
       `}</style>
     </>

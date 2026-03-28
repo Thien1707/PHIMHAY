@@ -13,6 +13,9 @@ export type User = {
   id: string
   email: string
   displayName: string
+  phoneNumber?: string
+  dateOfBirth?: string | null
+  gender?: string
   isAdmin: boolean
   isVip: boolean
   vipExpiresAt: string | null

@@ -9,6 +9,7 @@ import { Admin } from './pages/Admin'
 import { Vip } from './pages/Vip'
 import { PaymentReturn } from './pages/PaymentReturn'
 import { WatchPage } from './pages/WatchPage'
+import { Profile } from './pages/Profile'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/vip" element={<Vip />} />
             <Route path="/payment/return" element={<PaymentReturn />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

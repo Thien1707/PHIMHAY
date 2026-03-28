@@ -1,7 +1,12 @@
 const express = require('express');
 const Movie = require('../models/Movie');
-const { optionalAuth, requireAuth, isVipActive } = require('../middleware/auth');
+const mongoose = require('mongoose');
+const { optionalAuth, requireAuth, requireAdmin, isVipActive } = require('../middleware/auth');
+const { validate } = require('../middleware/validate');
 const { fetchMovieBySlug } = require('../services/phimapi');
+const { assignMovieToSeries, getMovieSeriesParts } = require('../controllers/movieSeriesController');
+const { updateMovieCategories } = require('../controllers/movieCategoriesController');
+const { movieParamsSchema, updateMovieCategoriesSchema } = require('../validators/movieCategoryValidators');
 
 const router = express.Router();
 
@@ -90,6 +95,13 @@ router.get('/', optionalAuth, async (req, res) => {
     if (req.query.country) {
       query.country = { $regex: String(req.query.country), $options: 'i' };
     }
+    if (req.query.category) {
+      const categoryId = String(req.query.category);
+      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+        return res.status(400).json({ error: 'category không hợp lệ' });
+      }
+      query.categoryIds = new mongoose.Types.ObjectId(categoryId);
+    }
 
     const start = Date.now();
     const [items, total] = await Promise.all([
@@ -142,6 +154,10 @@ router.get('/filters', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+router.post('/:id/assign-series', requireAuth, requireAdmin, assignMovieToSeries);
+router.get('/:id/series', getMovieSeriesParts);
+router.put('/:id/categories', requireAuth, requireAdmin, validate(movieParamsSchema, 'params'), validate(updateMovieCategoriesSchema), updateMovieCategories);
 
 router.get('/:slug', optionalAuth, async (req, res) => {
   try {

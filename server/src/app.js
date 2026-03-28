@@ -5,9 +5,11 @@ const connectDB = require('./db');
 const authRoutes = require('./routes/auth');
 const moviesRoutes = require('./routes/movies');
 const adminRoutes = require('./routes/admin');
+const categoriesRoutes = require('./routes/categories');
 const commentsRoutes = require('./routes/comments');
 const ratingsRoutes = require('./routes/ratings');
 const paymentRoutes = require('./routes/payment');
+const { setupSwagger } = require('./docs/swagger');
 
 const app = express();
 
@@ -57,9 +59,11 @@ app.use('/api/movies', (req, res, next) => {
   next();
 }, moviesRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoriesRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/payment', paymentRoutes);
+setupSwagger(app);
 
 // Xử lý lỗi 404 (Không tìm thấy route) - Để tránh treo request
 app.use((req, res, next) => {

@@ -15,6 +15,9 @@ const movieSchema = new mongoose.Schema(
     type: { type: String, default: '' },
     content: { type: String, default: '' },
     country: { type: String, default: '' },
+    categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category', index: true }],
+    seriesId: { type: String, default: '', index: true, trim: true },
+    partNumber: { type: Number, default: null, min: 1 },
     /** 0 = normal+Vip xem; 1 = chỉ VIP */
     viewStatus: { type: Number, enum: [VIEW_NORMAL, VIEW_VIP], default: VIEW_NORMAL },
     /**
@@ -30,5 +33,6 @@ const movieSchema = new mongoose.Schema(
 
 movieSchema.statics.VIEW_NORMAL = VIEW_NORMAL;
 movieSchema.statics.VIEW_VIP = VIEW_VIP;
+movieSchema.index({ seriesId: 1, partNumber: 1 });
 
 module.exports = mongoose.model('Movie', movieSchema);

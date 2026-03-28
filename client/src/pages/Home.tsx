@@ -26,6 +26,7 @@ export function Home() {
   const [err, setErr] = useState<string | null>(null)
   const [searchParams] = useSearchParams()
   const q = searchParams.get('q')
+  const category = searchParams.get('category')
   const type = searchParams.get('type')
   const country = searchParams.get('country')
 
@@ -41,6 +42,7 @@ export function Home() {
     if (q) {
       url = `/api/movies/search?q=${encodeURIComponent(q)}&page=${page}&limit=24`
     } else {
+      if (category) params.set('category', category)
       if (type) params.set('type', type)
       if (country) params.set('country', country)
       url = `/api/movies?${params.toString()}`
@@ -49,7 +51,7 @@ export function Home() {
     api<ListRes>(url)
       .then(setData)
       .catch((e: Error) => setErr(e.message))
-  }, [q, searchParams, type, country])
+  }, [q, searchParams, category, type, country])
 
   const heroMovies = !q && data?.items.slice(0, 5)
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0)
@@ -71,17 +73,19 @@ export function Home() {
           <div
             className="hero-banner__bg"
             style={{
-              backgroundImage: `linear-gradient(90deg, #0b0b0b 28%, transparent 72%), url(${hero.posterUrl || hero.thumbUrl})`,
+              backgroundImage: `linear-gradient(90deg, #0b0b0b 28%, rgba(11, 11, 11, 0.4) 100%), url(${hero.thumbUrl || hero.posterUrl})`,
             }}
           />
           <div className="hero-banner__content">
-            <p className="hero-tag">Nổi bật</p>
-            <h1>{hero.title}</h1>
-            <p className="muted">{hero.year}</p>
-            <div className="hero-actions">
-              <Link to={`/phim/${hero.slug}`} className="btn btn-primary">
-                Chi tiết
-              </Link>
+            <div className="hero-banner__info">
+              <p className="hero-tag">Nổi bật</p>
+              <h1>{hero.title}</h1>
+              <p className="muted">{hero.year}</p>
+              <div className="hero-actions">
+                <Link to={`/xem-phim/${hero.slug}`} className="btn btn-primary">
+                  Xem phim
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -113,7 +117,7 @@ export function Home() {
             <div className="grid-posters">
               {data.items.map((m) => (
                 <Link key={m.id} to={`/phim/${m.slug}`} className="poster-card">
-                  <img src={m.thumbUrl || m.posterUrl} alt="" loading="lazy" />
+                  <img src={m.posterUrl || m.thumbUrl} alt="" loading="lazy" />
                   <div className="poster-card__meta">
                     <span className="poster-title">{m.title}</span>
                     {m.viewStatus === 1 && <span className="pill pill-vip">VIP</span>}
@@ -152,10 +156,10 @@ export function Home() {
         }
         .hero-banner {
           position: relative;
-          min-height: 56vh;
+          min-height: 100vh; /* Tăng chiều cao tối thiểu để banner lớn hơn */
           display: flex;
           align-items: flex-end;
-          padding: 6rem 1.5rem 3rem;
+          padding: 8rem 4% 4rem; /* Tăng padding-top để đẩy banner xuống dưới navbar */
         }
         .hero-banner__bg {
           position: absolute;
@@ -167,6 +171,13 @@ export function Home() {
         .hero-banner__content {
           position: relative;
           z-index: 1;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 2rem;
+        }
+        .hero-banner__info {
           max-width: 520px;
         }
         .hero-tag {
