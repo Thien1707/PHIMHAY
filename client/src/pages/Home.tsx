@@ -69,14 +69,15 @@ export function Home() {
   return (
     <div className="home">
       {hero && (
-        <section key={hero.id} className="hero-banner hero-banner-fade">
+        <section className="hero-banner">
           <div
-            className="hero-banner__bg"
+            key={`bg-${hero.id}`}
+            className="hero-banner__bg hero-banner-slide"
             style={{
               backgroundImage: `linear-gradient(90deg, #0b0b0b 28%, rgba(11, 11, 11, 0.4) 100%), url(${hero.thumbUrl || hero.posterUrl})`,
             }}
           />
-          <div className="hero-banner__content">
+          <div key={`content-${hero.id}`} className="hero-banner__content hero-content-fade">
             <div className="hero-banner__info">
               <p className="hero-tag">Nổi bật</p>
               <h1>{hero.title}</h1>
@@ -88,6 +89,18 @@ export function Home() {
               </div>
             </div>
           </div>
+          {heroMovies && heroMovies.length > 1 && (
+            <div className="hero-dots">
+              {heroMovies.map((_, index) => (
+                <button
+                  key={index}
+                  className={`hero-dot ${index === currentHeroIndex ? 'active' : ''}`}
+                  onClick={() => setCurrentHeroIndex(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -144,21 +157,30 @@ export function Home() {
         )}
       </section>
       <style>{`
-        @keyframes herofade {
-          from { opacity: 0.8; }
-          to { opacity: 1; }
+        @keyframes heroSlideIn {
+          from { transform: translateX(5%); opacity: 0.6; }
+          to { transform: translateX(0); opacity: 1; }
         }
-        .hero-banner-fade {
-          animation: herofade 0.5s;
+        .hero-banner-slide {
+          animation: heroSlideIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        @keyframes heroContentFade {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .hero-content-fade {
+          animation: heroContentFade 0.7s ease-out;
         }
         .home {
           min-height: 100vh;
+          overflow-x: hidden; /* Ngăn thanh cuộn ngang khi banner chuyển động */
         }
         .hero-banner {
           position: relative;
           min-height: 100vh; /* Tăng chiều cao tối thiểu để banner lớn hơn */
           display: flex;
           align-items: flex-end;
+          overflow: hidden; /* Hide slide overflow */
           padding: 8rem 4% 4rem; /* Tăng padding-top để đẩy banner xuống dưới navbar */
         }
         .hero-banner__bg {
@@ -260,6 +282,31 @@ export function Home() {
           align-items: center;
           margin-top: 1rem;
           gap: 1rem;
+        }
+        .hero-dots {
+          position: absolute;
+          bottom: 2rem;
+          right: 4%;
+          display: flex;
+          gap: 0.65rem;
+          z-index: 2;
+        }
+        .hero-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.4);
+          border: 1px solid rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+          padding: 0;
+          transition: all 0.3s ease;
+        }
+        .hero-dot:hover {
+          background: rgba(255, 255, 255, 0.8);
+        }
+        .hero-dot.active {
+          background: #fff;
+          transform: scale(1.1);
         }
       `}</style>
     </div>
