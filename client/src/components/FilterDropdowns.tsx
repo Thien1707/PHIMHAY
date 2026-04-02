@@ -157,19 +157,24 @@ export function FilterDropdowns() {
             font-size: 0.9rem;
         }
         .filter-dropdown:hover .filter-dropdown__menu {
-          display: block;
+          display: flex;
         }
         .filter-dropdown__menu {
           display: none;
           position: absolute;
           top: 100%;
-          left: 0;
+          left: auto;
+          right: 0;
           background: #111;
           border: 1px solid #444;
           border-radius: 4px;
           padding: 0.5rem;
           max-height: 300px;
-          overflow-y: auto;
+          width: max-content;
+          flex-direction: column;
+          flex-wrap: wrap;
+          align-content: flex-start;
+          overflow: hidden;
           z-index: 10;
         }
         .filter-dropdown__menu a {
@@ -185,9 +190,6 @@ export function FilterDropdowns() {
         }
         .filter-dropdown__menu--country a {
           font-size: 0.8rem;
-        }
-        .filter-dropdown__menu--country {
-          overflow-y: hidden;
         }
         .menu-hint {
           opacity: 0.75;
