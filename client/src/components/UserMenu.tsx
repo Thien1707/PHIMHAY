@@ -54,7 +54,7 @@ export function UserMenu() {
               <Link to="/profile" onClick={() => setIsOpen(false)}>
                 Tài khoản & Cài đặt
               </Link>
-              <Link to="/history" onClick={() => setIsOpen(false)}>
+              <Link to="/watch-history" onClick={() => setIsOpen(false)}>
                 Lịch sử xem
               </Link>
             </li>
