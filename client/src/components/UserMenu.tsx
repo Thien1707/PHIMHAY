@@ -54,6 +54,9 @@ export function UserMenu() {
               <Link to="/profile" onClick={() => setIsOpen(false)}>
                 Tài khoản & Cài đặt
               </Link>
+              <Link to="/history" onClick={() => setIsOpen(false)}>
+                Lịch sử xem
+              </Link>
             </li>
             <li className="user-menu__separator" />
             <li>

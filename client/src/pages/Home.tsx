@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { ContinueWatching } from '../components/ContinueWatching'
 
 type MovieItem = {
   id: string
@@ -112,6 +113,8 @@ export function Home() {
         )}
         {err && <p className="error-text">{err}</p>}
         {!data && !err && <p className="muted">Đang tải…</p>}
+
+        {!q && <ContinueWatching />}
 
         {q && (
           <h2 className="row-title" style={{ marginTop: '1rem' }}>

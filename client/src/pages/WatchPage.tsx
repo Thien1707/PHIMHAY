@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { api } from '../api/client'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { api, updateWatchHistory } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 type Ep = { name: string; slug: string; link_embed: string; link_m3u8: string }
@@ -41,6 +41,7 @@ type RatingRes = {
 
 export function WatchPage() {
   const { slug } = useParams<{ slug: string }>()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const [detail, setDetail] = useState<DetailRes | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -56,6 +57,11 @@ export function WatchPage() {
   const [epIdx, setEpIdx] = useState(0)
   const playerRef = useRef<HTMLDivElement>(null)
   const isInitialMount = useRef(true)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Get query params for continuing watch
+  const episodeParam = searchParams.get('episode')
+  const timeParam = searchParams.get('time')
 
   useEffect(() => {
     if (!slug) return
@@ -64,6 +70,33 @@ export function WatchPage() {
       .then(setDetail)
       .catch((e: Error) => setErr(e.message))
   }, [slug])
+
+  // Save watch history when episode changes
+  const saveWatchHistory = async () => {
+    if (!user || !detail?.movie?.id) return
+    try {
+      const episodeNumber = epIdx + 1
+      // Save a checkpoint (5 minutes into the episode)
+      await updateWatchHistory(detail.movie.id, episodeNumber, 300)
+    } catch (error) {
+      console.error('Failed to save watch history:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (!user || !detail?.movie?.id) return
+    // Save history when episode changes (with a short delay to avoid too many calls)
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    saveTimeoutRef.current = setTimeout(saveWatchHistory, 1000)
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [epIdx, srvIdx, user, detail?.movie?.id])
 
   const m = detail?.movie
 
@@ -83,7 +116,16 @@ export function WatchPage() {
         setRatings(null)
         setRatingsErr(e.message)
       })
-  }, [m?.id, user?.id])
+
+    // Handle continue watching - set episode from query param
+    if (episodeParam && m?.episodes?.[srvIdx]) {
+      const epNum = parseInt(episodeParam) - 1 // Convert từ 1-based sang 0-based
+      const maxEpisodes = m.episodes[srvIdx].server_data?.length || 0
+      if (epNum >= 0 && epNum < maxEpisodes) {
+        setEpIdx(epNum)
+      }
+    }
+  }, [m?.id, user?.id, episodeParam, srvIdx])
 
   const server = m?.episodes?.[srvIdx]
   const episode = server?.server_data?.[epIdx]

@@ -42,3 +42,39 @@ export async function api<T>(
   }
   return data as T
 }
+
+// Watch History APIs
+export type WatchHistoryItem = {
+  _id: string
+  userId: string
+  movieId: {
+    _id: string
+    title: string
+    slug: string
+    posterUrl: string
+    thumbUrl: string
+  }
+  episode: number
+  currentTime: number
+  createdAt: string
+  updatedAt: string
+}
+
+export async function updateWatchHistory(movieId: string, episode: number, currentTime: number) {
+  return api('/api/history', {
+    method: 'POST',
+    json: { movieId, episode, currentTime }
+  })
+}
+
+export async function getWatchHistory() {
+  return api<WatchHistoryItem[]>('/api/history')
+}
+
+export async function deleteWatchHistoryItem(historyId: string) {
+  return api(`/api/history/${historyId}`, { method: 'DELETE' })
+}
+
+export async function clearAllWatchHistory() {
+  return api('/api/history', { method: 'DELETE' })
+}

@@ -9,6 +9,7 @@ const categoriesRoutes = require('./routes/categories');
 const commentsRoutes = require('./routes/comments');
 const ratingsRoutes = require('./routes/ratings');
 const paymentRoutes = require('./routes/payment');
+const historyRoutes = require('./routes/history');
 const { setupSwagger } = require('./docs/swagger');
 
 const app = express();
@@ -63,6 +64,7 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/history', historyRoutes);
 setupSwagger(app);
 
 // Xử lý lỗi 404 (Không tìm thấy route) - Để tránh treo request
